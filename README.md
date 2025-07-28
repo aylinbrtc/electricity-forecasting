@@ -1,108 +1,124 @@
-# ELECTRICITY FORECASTING PROJECT
+# ELEKTRİK FİYATI TAHMİN PROJESİ
 
 ## Proje Amacı
 
-Bu proje, saatlik elektrik türetimi, tüketimi, fiyat verisi ve hava durumu bilgilerini kullanarak elektrik fiyatlarını tahmin etmeye yöneliktir. Proje iki temel aşamadan oluşur:
+Bu proje, saatlik elektrik üretimi, tüketimi, fiyat verileri ve hava durumu bilgilerini kullanarak elektrik fiyatlarını tahmin etmeye odaklanmıştır. Proje, iki farklı metodolojik yaklaşım üzerinden iki temel hedefi gerçekleştirmeyi amaçlar:
 
-1. Saatlik bazda bir sonraki saatin fiyat tahmini
-2. Günlük bazda bir sonraki günün ortalama fiyat tahmini
+1.  **Saatlik Tahmin**: Bir sonraki saatin anlık elektrik fiyatını tahmin etme.
+2.  **Günlük Tahmin**: Bir sonraki 24 saatin ortalama elektrik fiyatını tahmin etme.
 
-Veri üzerinde detaylı ön işleme, öznitelik mühendisliği, farklı model denemeleri ve son olarak ensemble yapı kurularak tahmin performansı maksimum seviyeye çıkarılmaya çalışılmıştır.
+Proje kapsamında, zaman serisi verileri üzerinde detaylı ön işleme, kapsamlı öznitelik mühendisliği ve farklı model mimarileri denenmiştir. Proje, klasik makine öğrenmesi modelleriyle oluşturulmuş bir **ensemble** yaklaşımını ve derin öğrenme tabanlı (RNN) daha gelişmiş ikinci bir yaklaşımı içermektedir.
 
 ## Proje Yapısı
 
+Proje, iki ana metodolojiyi barındıracak şekilde yeniden organize edilmiştir.
+
 ```
 ELECTRICITY_FORECASTING_PROJECT
+|
 |— data
-|   |— raw                # Ham veriler
-|   |— processed          # Temizlenmiş ve birleştirilmiş veriler
+| |— raw/ # Ham veriler (energy_dataset.csv, weather_features.csv)
+| |— processed/ # İşlenmiş, temizlenmiş ve modellere hazır veriler
+|
+|— models/ # İkinci Yöntem (RNN) ile eğitilmiş nihai modeller (.keras, .joblib)
+|
 |— notebooks
-|   |— models            # Saatlik modeller
-|   |— models_daily      # Günlük modeller
-|   |— .ipynb files      # Notebooklar
+| |— first_method/ # Yöntem 1: Klasik ML ve Ensemble Modelleri Notebook'ları
+| | |— models/ # Yöntem 1 için saatlik modeller ve çıktılar
+| | |— models_daily/ # Yöntem 1 için günlük modeller ve çıktılar
+| |
+| |— second_method/ # Yöntem 2: Derin Öğrenme (RNN) Modelleri Notebook'ları
+| |— 1_feature_enginering_master.ipynb
+| |— 2_model_training_hourly.ipynb
+| |— 2_model_training_daily.ipynb
+| |— ... (test notebook'ları)
+|
+|— requirements.txt # Gerekli kütüphaneler
+|— README.md # Bu dosya
 ```
 
 ## Kullanılan Veriler
 
-* **energy\_dataset.csv**: Elektrik fiyatı, üretim ve tüketim verileri (saatlik)
-* **weather\_features.csv**: Aynı zaman aralığında hava durumu verileri
-* Temizlik ve birleştirme adımları sonunda: `energy_clean.csv`, `weather_clean.csv`, `merged_with_weather.csv`
+*   **energy\_dataset.csv**: Saatlik elektrik fiyatı, üretim ve tüketim verileri.
+*   **weather\_features.csv**: Eş zamanlı hava durumu verileri.
+*   **İşlenmiş Veriler (`data/processed/`)**:
+    *   `merged_with_weather.csv`: Temizlenmiş ve birleştirilmiş ana veri seti.
+    *   `hourly_model_data.npz`: İkinci yöntem için hazırlanmış saatlik model sekansları.
+    *   `daily_model_data.npz`: İkinci yöntem için hazırlanmış günlük model sekansları.
+    *   `scaler_*.joblib`: Verileri ölçeklendirmek için kullanılan scaler nesneleri.
 
-## Notebook Açıklamaları
+---
 
-### 0\_data\_exploration.ipynb
+## Model ve Veri İndirme Bağlantıları
 
-* Verinin genel yapısı, eksik değerler, dağılım analizleri ve zamansal düzende trendler incelenmiştir.
-* ACF/PACF, haftalık ve saatlik döngüler, fiyat-tüketim ilişkisi gibi yapılar ortaya konmuştur.
-* Çıkarım: Lag temelli ve zaman tabanlı öznitelikler bilgi taşıyor.
+Proje adımlarını atlayarak doğrudan test veya analiz yapmak isterseniz, önceden eğitilmiş modelleri ve işlenmiş verileri aşağıdaki Google Drive bağlantılarından indirebilirsiniz.
 
-### 1\_feature\_engineering.ipynb
+*   **Metodoloji 1 - Klasik Modeller:**
+    *   [Saatlik Modelleri İndir (Yöntem 1)](https://drive.google.com/drive/folders/1weQCBSra5TxtagRcx5BC24TNGQZS3R7R?usp=sharing)
+    *   [Günlük Modelleri İndir (Yöntem 1)](https://drive.google.com/drive/folders/1_2WOjlDoAXM65KKqI2VOo39wiyq46iUM?usp=sharing)
 
-* Saatlik tahmin için zaman, lag, rolling, frekans, hava durumu ve üretim bazlı öznitelikler üretildi.
-* Özellikle `price_lag_1`, `load_lag_24` gibi özelliklerin etkili olduğu gözlendi.
-* Korelasyon analizi ve LightGBM ile ön önem kontrolü yapıldı.
+*   **Metodoloji 2 - Derin Öğrenme Modelleri:**
+    *   [Nihai RNN Modellerini İndir (`models/` klasörü)](https://drive.google.com/drive/folders/1eYvCQe2UOpDiJmynQxSMHiXBObG5ozn_?usp=drive_link)
 
-### 2\_model\_training.ipynb
+*   **İşlenmiş Veri Setleri (`.npz`):**
+    *   [İşlenmiş Saatlik ve Günlük Verileri İndir (`data/processed/`)](https://drive.google.com/drive/folders/1_0FyLgLsbPYNBFzm5DBfoSul42t_a6GJ?usp=drive_link)
 
-* MLP, LightGBM ve Random Forest modelleri RandomizedSearchCV ile optimize edildi.
-* TimeSeriesSplit kullanılarak zaman tabanlı doğrulama yapıldı.
-* En iyi modeller kaydedildi, daha sonra ensemble modeli için kullanıldı.
+---
 
-### 3\_model\_testing.ipynb
+## Metodoloji 1: Klasik ML ve Ensemble Modelleri
 
-* Tüm modeller test setinde değerlendirildi.
-* Ağırlık optimizasyonu ile ensemble tahmini hesaplandı.
-* SMAPE, MAE, RMSE gibi metrikler kullanıldı.
-* Test setinde en iyi başarıyı ensemble model gösterdi.
+Bu yaklaşım, projenin ilk aşamasını oluşturur ve `notebooks/first_method` klasöründe yer alır. Temel olarak lag/rolling gibi geleneksel özniteliklere dayalı ve farklı modellerin birleşiminden oluşan bir yapı kullanır.
 
-### 1\_feature\_engineering\_daily.ipynb
+### Notebook Açıklamaları (`first_method/`)
 
-* Günlük tahmin için hedef değişken: 24 saat sonrasının ortalama fiyatı.
-* 6 gün geriye kadar lag ve rolling öznitelikler kullanıldı.
-* Frekans tabanlı öznitelikler ve üretim tipine göre toplam enerji hesaplandı.
-* LightGBM ile ön öznitelik seçimi yapıldı.
+*   **0\_data\_exploration.ipynb**: Veri keşfi, döngüsellik ve korelasyon analizleri.
+*   **1\_feature\_engineering(\_daily).ipynb**: Saatlik ve günlük tahminler için lag, zaman ve hareketli ortalama tabanlı özniteliklerin üretilmesi.
+*   **2\_model\_training(\_daily).ipynb**: `MLP`, `LightGBM` ve `Random Forest` modellerinin `RandomizedSearchCV` ile optimizasyonu ve `TimeSeriesSplit` ile doğrulanması.
+*   **3\_model\_testing(\_daily).ipynb**: Modellerin test verisi üzerinde değerlendirilmesi ve ağırlıkları optimize edilmiş bir **ensemble** modelinin oluşturulması.
 
-### 2\_model\_training\_daily.ipynb
+### Modeller ve Çıktılar
 
-* Günlük tahmin için MLP, RF ve LightGBM modelleri eğitildi.
-* En iyi performansı LightGBM gösterdiği için ensemble ağırlığı %100 ona verildi.
+*   Bu yöntemde eğitilen tüm modeller (`.pkl`, `.keras`), scaler'lar ve diğer çıktılar kendi klasörleri olan `notebooks/first_method/models/` ve `notebooks/first_method/models_daily/` altında saklanır.
+*   Bu modellere yukarıdaki indirme bölümünden ulaşabilirsiniz.
+*   Ensemble yapı, özellikle saatlik tahminlerde tekil modellere kıyasla daha iyi performans göstermiştir.
 
-### 3\_model\_testing\_daily.ipynb
+---
 
-* Günlük tahmin test setinde değerlendirildi.
-* Ensemble modeli tek başına LightGBM çıktı.
-* SMAPE: %3.69 gibi düşük hata oranı elde edildi.
+## Metodoloji 2: Derin Öğrenme (Conv1D + GRU)
 
-## Modeller
+Bu yaklaşım, zaman serisi verilerindeki karmaşık ve doğrusal olmayan desenleri yakalamak için derin öğrenme modellerini kullanır. Tüm notebook'lar `notebooks/second_method` altında, nihai modeller ise ana `models/` dizininde yer alır.
 
-* **MLP**: TensorFlow ile KerasRegressor, erken durdurma ile optimize edildi.
-* **LightGBM**: En düşük hata oranını verdi, hem saatlik hem günlük tahminlerde başarılı.
-* **Random Forest**: Ortalama performans, ensembleda katkısı düşük kaldı.
-* **Ensemble**: Ağırlıklar optimize edilerek final tahmin hesaplandı. Günlük modelde ağırlıklar tek modele kaydı.
+### Notebook Açıklamaları (`second_method/`)
 
-## Kayıtlanan Çıktılar
+*   **1\_feature\_enginering\_master.ipynb**: Her iki (saatlik ve günlük) model için veri hazırlama sürecini merkezileştirir. Fourier ve Dalgacık dönüşümleri gibi sinyal işleme teknikleriyle gelişmiş öznitelikler türetir. Çıktı olarak, RNN modellerine uygun, ölçeklendirilmiş ve sekanslanmış `hourly_model_data.npz` ve `daily_model_data.npz` dosyalarını üretir.
+*   **2\_model\_training\_hourly.ipynb**: Geçmiş 24 saatlik veriyi kullanarak bir sonraki saatin fiyatını tahmin eden **GRU tabanlı** bir RNN modeli eğitir. `KerasTuner` ile hiperparametre optimizasyonu yapar.
+*   **2\_model\_training\_daily.ipynb**: Bir sonraki 24 saatin ortalama fiyatını tahmin eden, daha gelişmiş bir model mimarisi kullanır. Bu mimari:
+    *   **Conv1D Katmanı**: Zaman serisindeki gürültüyü filtreler ve kısa vadeli desenleri bir "desen avcısı" gibi yakalar.
+    *   **İstiflenmiş GRU (Stacked GRU)**: Birbiri ardına gelen GRU katmanları ile desenler arası hiyerarşik ilişkileri öğrenir, bu da gürültülü günlük tahminlerde performansı önemli ölçüde artırır.
+*   **3\_model\_testing(\_hourly/\_daily).ipynb**: Eğitilen nihai modellerin test verisi üzerindeki performansını (MAE, RMSE, R²) metrikleriyle değerlendirir.
 
-* `models/` ve `models_daily/` klasörlerinde modellerin .pkl ve .keras formatları
-* `ensemble_weights.pkl` ve `important_features.txt` gibi destek dosyaları
+### Modeller ve Çıktılar
+
+*   Bu yöntemin en iyi performans gösteren nihai modelleri ana `models/` klasörüne kaydedilmiştir. Bu modellere yukarıdaki indirme bölümünden ulaşabilirsiniz.
+    *   `best_tuned_hourly_model.keras`: Optimize edilmiş saatlik tahmin modeli.
+    *   `best_tuned_daily_model.keras`: Optimize edilmiş günlük tahmin modeli (Conv1D + Stacked GRU).
+*   Modellerin kullandığı ölçekleyiciler ve `.npz` formatındaki işlenmiş veriler ise `data/processed/` klasöründe saklanır. Bu dosyalara da yukarıdaki indirme bağlantılarından erişilebilir.
 
 ## Nasıl Çalıştırılır?
 
-1. `data/raw` klasörü altındaki ham verilerle başlanır.
-2. `0_data_exploration.ipynb` ile veri incelenir ve yapılar anlaşılır.
-3. `1_feature_engineering*.ipynb` dosyaları ile öznitelikler oluşturulur.
-4. `2_model_training*.ipynb` dosyaları modelleri eğitir ve kaydeder.
-5. `3_model_testing*.ipynb` dosyaları test verileriyle modelleri değerlendirir.
+Projeyi çalıştırmak için iki metodolojiden birini seçebilir veya önceden eğitilmiş çıktıları kullanabilirsiniz:
 
-> Not: `models/` ve `models_daily/` klasörüne önceden kayıtlı modeller yüklenmişe şekilde notebooklar test edilmiştir.
+1.  **Metodoloji 1'i Çalıştırmak İçin:**
+    *   `notebooks/first_method/` dizinine gidin.
+    *   Notebook'ları `0_`, `1_`, `2_`, `3_` sırasında çalıştırın. Alternatif olarak, ilgili modelleri yukarıdaki linkten indirip test (`3_*`) notebook'larını doğrudan çalıştırın.
 
-## Modellerin İndirme Bağlantısı
-
-Proje boyut sınırlarından dolayı modeller Google Drive üzerinden paylaşıldı:
-
-- [Saatlik Modelleri İndir (Google Drive)](https://drive.google.com/drive/folders/1weQCBSra5TxtagRcx5BC24TNGQZS3R7R?usp=sharing)
-- [Günlük Modelleri İndir (Google Drive)](https://drive.google.com/drive/folders/1_2WOjlDoAXM65KKqI2VOo39wiyq46iUM?usp=sharing)
-
+2.  **Metodoloji 2'yi Çalıştırmak İçin:**
+    *   `notebooks/second_method/` dizinine gidin.
+    *   **Seçenek A (Sıfırdan):** Önce `1_feature_enginering_master.ipynb` dosyasını çalıştırarak verileri oluşturun. Sonra `2_model_training_*.ipynb` dosyalarıyla modelleri eğitin.
+    *   **Seçenek B (Hızlı Test):** Yukarıdaki linklerden **Nihai RNN Modellerini** `models/` klasörüne ve **İşlenmiş Veri Setlerini** `data/processed/` klasörüne indirin. Ardından `3_model_testing_*.ipynb` dosyalarını çalıştırarak sonuçları doğrudan değerlendirin.
 
 ## Sonuç
 
-Bu proje, zaman serisi tabanlı elektrik fiyat tahmini konusunda detaylı bir öznitelik mühendisliği ve modelleme süreci sunmuştur. Ensemble yapılar ile tahmin kalitesi artırılmış, LightGBM modeli ise genel olarak en tutarlı sonuçları vermiştir. Yapılan çalışma veri sızıntısına karşı dikkatli yaklaşmış ve gerçekçi bir tahmin sistematiği ortaya koymuştur.
+Bu proje, elektrik fiyatı tahmini problemini iki farklı ve güçlü yaklaşımla ele almıştır.
+*   **İlk Yöntem**, LightGBM gibi modellere dayalı **ensemble** yapısının ne kadar etkili ve hızlı bir çözüm olabileceğini göstermiştir.
+*   **İkinci Yöntem** ise, Conv1D ve İstiflenmiş GRU gibi derin öğrenme mimarilerinin, özellikle gürültülü ve karmaşık zaman serisi verilerinde desenleri ne kadar derinden öğrenebildiğini ortaya koymuştur.
