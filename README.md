@@ -102,7 +102,6 @@ Proje boyut sınırlarından dolayı modeller Google Drive üzerinden paylaşıl
 - [Saatlik Modelleri İndir (Google Drive)](https://drive.google.com/drive/folders/1weQCBSra5TxtagRcx5BC24TNGQZS3R7R?usp=sharing)
 - [Günlük Modelleri İndir (Google Drive)](https://drive.google.com/drive/folders/1_2WOjlDoAXM65KKqI2VOo39wiyq46iUM?usp=sharing)
 
-İndirdiğiniz dosyaları projenin doğru dizinine eklediğinize emin olun.
 
 ## Sonuç
 
