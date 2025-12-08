@@ -4,3 +4,127 @@
 *.csv
 __pycache__/
 .ipynb_checkpoints/
+
+
+from PyQt6.QtWidgets import QStyledItemDelegate, QStyle
+from PyQt6.QtCore import Qt, pyqtSignal, QRect, QSize, QEvent
+from PyQt6.QtGui import QColor
+
+class ActionButtonsDelegate(QStyledItemDelegate):
+    # Tıklama sinyali: (index, işlem_adı) döndürür
+    buttonClicked = pyqtSignal(object, str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+        # Buton tanımları: (action_key, tooltip/label)
+        self.buttons = [
+            ("details", "Ayrıntılar"),
+            ("procedures", "Prosedür Seç"),
+            ("edit_storage", "Depo Düzenle"),
+            ("log", "Log Göster"),
+            ("assign", "Kullanıma Al"),
+            ("delete", "Sil")
+        ]
+        
+        # Görsel Ayarlar
+        self.button_size = 24  # Buton genişliği ve yüksekliği
+        self.spacing = 4       # Butonlar arası boşluk
+        self.padding = 5       # Hücre kenar boşluğu
+
+    def paint(self, painter, option, index):
+        """Hücrenin içine butonları çizer."""
+        if not index.isValid():
+            return
+
+        # --- GÜVENLİK KONTROLÜ ---
+        # Eğer bu delegate yanlışlıkla "İşlemler" dışında bir sütuna atandıysa,
+        # buton çizmek yerine standart metni (varsa) yazsın ve çıksın.
+        header_text = index.model().headerData(index.column(), Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole)
+        if header_text != "İşlemler":
+            super().paint(painter, option, index)
+            return
+        # -------------------------
+
+        painter.save()
+        painter.setRenderHint(painter.RenderHint.Antialiasing)
+
+        # Çizim alanı
+        rect = option.rect
+        
+        # Eğer rect yüksekliği 0 geliyorsa (ilk açılışta olabilir), varsayılan boyut ver
+        if rect.height() == 0:
+            rect = QRect(rect.x(), rect.y(), rect.width(), self.button_size + (self.padding * 2))
+
+        # Dikey ortalama hesabı
+        center_y = rect.top() + (rect.height() - self.button_size) // 2
+        current_x = rect.left() + self.padding
+
+        # Kalem ayarları
+        painter.setPen(QColor(Qt.GlobalColor.black))
+        
+        # Font ayarı (ikon yerine harf çizdiğimiz için)
+        font = painter.font()
+        font.setPixelSize(12)
+        font.setBold(True)
+        painter.setFont(font)
+
+        # Butonları döngüyle çiz
+        for _, label_text in self.buttons:
+            # Hedef kutu
+            target_rect = QRect(current_x, int(center_y), self.button_size, self.button_size)
+
+            # 1. Buton Arka Planı (Gri Kutu)
+            # Seçili satır durumunda renk değişimi yapılabilir, şimdilik sabit renk.
+            painter.setBrush(QColor("#e0e0e0"))
+            painter.setPen(QColor("#999999")) # Çerçeve rengi
+            painter.drawRoundedRect(target_rect, 4, 4) # Hafif yuvarlatılmış köşeler
+            
+            # 2. Buton İçeriği (Label'ın baş harfi)
+            painter.setPen(QColor("#333333")) # Yazı rengi
+            short_text = label_text[0] 
+            painter.drawText(target_rect, Qt.AlignmentFlag.AlignCenter, short_text)
+
+            # Bir sonraki buton için x koordinatını kaydır
+            current_x += self.button_size + self.spacing
+
+        painter.restore()
+
+    def editorEvent(self, event, model, option, index):
+        """Tıklama olaylarını yakalar."""
+        # Sadece fare tıklaması bırakıldığında (MouseRelease) işlem yap
+        if event.type() == QEvent.Type.MouseButtonRelease:
+            click_x = event.position().x()
+            
+            # Çizimdeki başlangıç x koordinatını hesapla
+            rect = option.rect
+            current_x = rect.left() + self.padding
+
+            # Tıklamanın hangi butona denk geldiğini bul
+            for action_key, _ in self.buttons:
+                end_x = current_x + self.button_size
+                
+                # Eğer tıklama bu butonun x sınırları içindeyse
+                if current_x <= click_x <= end_x:
+                    # Sinyali gönder: (Hücre İndeksi, İşlem Adı)
+                    self.buttonClicked.emit(index, action_key)
+                    return True # Olayı tükettik (handled)
+                
+                # Bir sonraki butonun konumuna geç
+                current_x += self.button_size + self.spacing
+                
+        return False
+        
+    def sizeHint(self, option, index):
+        """Hücrenin ne kadar genişlik ve yüksekliğe ihtiyacı olduğunu bildirir."""
+        
+        # Genişlik: (Buton Sayısı * Boyut) + (Boşluklar) + (Kenar Payları)
+        width = (self.button_size * len(self.buttons)) + \
+                (self.spacing * (len(self.buttons) - 1)) + \
+                (self.padding * 2)
+        
+        # Yükseklik: Buton Boyutu + Kenar Payları
+        # Not: option.rect.height() kullanılmaz, çünkü tablo buraya bakarak yüksekliği ayarlar.
+        height = self.button_size + (self.padding * 2)
+        
+        return QSize(width, height)
