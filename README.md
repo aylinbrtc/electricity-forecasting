@@ -10,8 +10,10 @@ Two forecasting targets:
 
 ## Data
 
-- `energy_dataset.csv` — hourly electricity price, production, and consumption
-- `weather_features.csv` — co-located weather readings
+Hourly data for the **Spanish electricity market**, covering **2015-01-01 to 2018-12-31**. Source: [Energy Consumption, Generation, Prices and Weather](https://www.kaggle.com/datasets/nicholasjhana/energy-consumption-generation-prices-and-weather) (Kaggle, N. Jhana). The CSVs are not tracked in this repo; download them and place them in `data/raw/`.
+
+- `energy_dataset.csv` — hourly market price (`price_actual`), generation by source, and total actual load
+- `weather_features.csv` — weather readings for five Spanish cities (only Madrid is used, as it correlated most with price)
 
 ## Methodologies
 
@@ -40,6 +42,26 @@ Notebooks in `notebooks/second_method/`:
 | `2_model_training_hourly` | GRU model for hourly prediction |
 | `2_model_training_daily` | Conv1D + Stacked GRU for daily prediction |
 | `3_model_testing_hourly/daily` | MAE, RMSE, R² evaluation |
+
+## Results
+
+Test set, original price scale (EUR).
+
+| Task | Model | MAE | RMSE | R² |
+|------|-------|-----|------|----|
+| Hourly | Ensemble (MLP + LightGBM + RF)* | **1.88** | **2.70** | **0.961** |
+| Hourly | LightGBM | 1.91 | 2.74 | 0.960 |
+| Hourly | GRU baseline | 2.60 | 3.21 | 0.839 |
+| Daily | LightGBM | **3.09** | **3.76** | **0.459** |
+| Daily | Conv1D + Stacked GRU | 3.69 | 4.42 | 0.199 |
+| Daily | Random Forest | 4.17 | 4.94 | 0.068 |
+| Daily | MLP | 4.26 | 5.19 | -0.031 |
+
+\* Scored on the **validation** set, which was also used to fit the ensemble weights (`3_model_testing.ipynb` loads `y_val.pkl`). Treat it as an optimistic estimate until re-evaluated on the held-out test split. The two methods also use different chronological splits, so the hourly ML/DL comparison is indicative only.
+
+Naive baselines (`scripts/export_powerbi.py`, test split of the hourly series): last-hour price MAE 1.97 / R² 0.867; same hour yesterday MAE 3.93 / R² 0.531; daily average, previous day MAE 2.68 / R² 0.525. So the hourly persistence baseline is already at MAE ≈ 2, and the daily LightGBM (MAE 3.09) does not beat the previous-day baseline (MAE 2.68), although splits differ slightly.
+
+The feature-engineered ensemble beats the deep learning models on both horizons. The Conv1D layer improves on a plain GRU for the daily task (which had a negative R²), but it does not beat LightGBM.
 
 ## Setup
 

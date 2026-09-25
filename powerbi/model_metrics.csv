@@ -1,0 +1,7 @@
+task,model,family,evaluated_on,MAE,RMSE,R2
+Hourly,Ensemble (MLP+LGBM+RF),ML,validation,1.88,2.7,0.961
+Hourly,Conv1D/GRU,DL,test,2.6,3.21,0.839
+Daily,LightGBM,ML,test,3.09,3.76,0.459
+Daily,Random Forest,ML,test,4.17,4.94,0.068
+Daily,MLP,ML,test,4.26,5.19,-0.031
+Daily,Conv1D + Stacked GRU,DL,test,3.69,4.42,0.199
